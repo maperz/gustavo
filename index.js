@@ -6,6 +6,12 @@ const telegram = require('node-telegram-bot-api');
 const token = process.env.TELEGRAM_TOKEN;
 const food_token = process.env.FOOD_API_TOKEN;
 
+const db = require('better-sqlite3')('gustavo.db');
+
+db.exec('CREATE TABLE IF NOT EXISTS requests (user INTEGER NOT NULL, request TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)');
+const get_last_requests = db.prepare('SELECT * FROM requests WHERE user=? AND date(timestamp) = date("now")');
+const insert_request = db.prepare('INSERT INTO requests (user, request) VALUES(?, ?)');
+
 if(!token) {
     console.error('Please set TELEGRAM_TOKEN in .env');
     process.exit();
@@ -23,10 +29,29 @@ function getIngredients(txt) {
     return res.replace(/::?/g, ' ').replace(/\s\s+/g, ' ').trim().split(' ');
 }
 
+const maxRequestPerDay = 4;
+
 async function handleRecipeRequest(msg) {
+
     const chatId = msg.chat.id;
+    if(msg.text == '/start') {
+        bot.sendMessage(chatId, 'Hey there! It´s me, Gustavo!\nWhat do you want to cook today?\n🥕🍅🥑');
+        return;
+    }
+
+    let requests = get_last_requests.all(chatId);
+
+    if(requests.length >= maxRequestPerDay && !(process.env.DEV_CHATID && process.env.DEV_CHATID == chatId )) {
+        bot.sendMessage(chatId, 'Sorry, you exceeded your personal number of request per day! Come back tomorrow!');
+        return;
+    }
+
     const ingredients = getIngredients(msg.text.toString());
+
+    insert_request.run(chatId, msg.text.toString());
+
     console.log("Quering for: ", ingredients);
+
     try {
         let recipes = await getRecipes(ingredients, 3);
         for(let recipe of recipes) {
