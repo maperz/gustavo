@@ -42,7 +42,7 @@ async function handleRecipeRequest(msg) {
     let requests = get_last_requests.all(chatId);
 
     if(requests.length >= maxRequestPerDay && !(process.env.DEV_CHATID && process.env.DEV_CHATID == chatId )) {
-        bot.sendMessage(chatId, 'Sorry, you exceeded your personal number of request per day! Come back tomorrow!');
+        bot.sendMessage(chatId, 'Sorry, you exceeded your number of request per day. Come back tomorrow!');
         return;
     }
 
@@ -57,10 +57,13 @@ async function handleRecipeRequest(msg) {
         for(let recipe of recipes) {
             sendSingleRecipe(chatId, recipe);
         }
+        if(recipes.length == 0) {
+            bot.sendMessage(chatId, 'Oh noo! No recipes found.');
+        }
     }
     catch(e) {
         console.error(e.message);
-        bot.sendMessage(chatId, 'An error occured');
+        bot.sendMessage(chatId, 'I am sorry, something went wrong.');
     }
 }
 function sendSingleRecipe(chatId, recipe) {
@@ -78,7 +81,8 @@ async function getRecipes(ingredients, amount) {
         const url = recipe_url + "&ingredients=" + ingredients_str + "&number=" + amount;
         console.log("Quering url at: " + url);
         http.get(url, (res) => {
-        const { statusCode } = res;    
+        const { statusCode } = res; 
+
         if (statusCode !== 200) {
             reject(new Error(`HTTP Request Failure (${statusCode})`));
         } 
