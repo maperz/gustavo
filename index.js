@@ -6,12 +6,9 @@ const telegram = require('node-telegram-bot-api');
 const token = process.env.TELEGRAM_TOKEN;
 const food_token = process.env.FOOD_API_TOKEN;
 
-const sqlite3 = require('sqlite3');
-const db = new sqlite3.Database('gustavo.db');
+const db = require('better-sqlite3')('gustavo.db');
 
-db.serialize(function() {
-    db.run('CREATE TABLE IF NOT EXISTS requests (user INTEGER NOT NULL, request TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)');
-});
+db.exec('CREATE TABLE IF NOT EXISTS requests (user INTEGER NOT NULL, request TEXT NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)');
 
 const get_last_requests = db.prepare('SELECT * FROM requests WHERE user=? AND date(timestamp) = date("now")');
 const insert_request = db.prepare('INSERT INTO requests (user, request) VALUES(?, ?)');
@@ -107,11 +104,7 @@ async function getRecipes(ingredients, amount) {
 }
 
 function main() {
-    bot.on('message', (msg) => {
-        db.serialize(function() {
-            handleRecipeRequest(msg);
-        });
-    });
+    bot.on('message', handleRecipeRequest);
 }
 
 
