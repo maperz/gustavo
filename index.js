@@ -33,8 +33,8 @@ function getIngredients(txt) {
 const maxRequestPerDay = 4;
 
 async function handleRecipeRequest(msg) {
-
     const chatId = msg.chat.id;
+
     if(msg.text == '/start') {
         bot.sendMessage(chatId, 'Hey there! It´s me, Gustavo!\nWhat do you want to cook today?\n🥕🍅🥑');
         return;
@@ -54,7 +54,8 @@ async function handleRecipeRequest(msg) {
     console.log("Quering for: ", ingredients);
 
     try {
-        let recipes = await getRecipes(ingredients, 3);
+        const response = await getRecipes(ingredients, 3);
+        const recipes = response.results;
         for(let recipe of recipes) {
             sendSingleRecipe(chatId, recipe);
         }
@@ -69,17 +70,24 @@ async function handleRecipeRequest(msg) {
 }
 function sendSingleRecipe(chatId, recipe) {
     console.log(recipe.title);
-    bot.sendPhoto(chatId, recipe.image, { caption: recipe.title });
+    const info = `⏱ ${recipe.readyInMinutes}min`;
+    const message = `<a href="${recipe.sourceUrl}">${recipe.title}</a>\n${info}`;
+    bot.sendPhoto(chatId, recipe.image, { caption: message, parse_mode: 'HTML' });
 }
 
-const recipe_url = `https://api.spoonacular.com/recipes/findByIngredients?apiKey=${food_token}`;
+const recipe_url = `https://api.spoonacular.com/recipes/complexSearch?apiKey=${food_token}`;
 async function getRecipes(ingredients, amount) {
     return new Promise((resolve, reject) => {
         if(ingredients.length < 1) {
             reject(new Error("Too few ingredients"));
         }
         const ingredients_str = ingredients.join(',+');
-        const url = recipe_url + "&ingredients=" + ingredients_str + "&number=" + amount;
+        const url = recipe_url 
+        + "&includeIngredients=" + ingredients_str 
+        + "&number=" + amount
+        + "&addRecipeInformation=true"
+        + "&sort=random";
+
         console.log("Quering url at: " + url);
         http.get(url, (res) => {
         const { statusCode } = res; 
