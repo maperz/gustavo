@@ -4,7 +4,7 @@ cp main.js /opt/maperz/gustavo/
 cp .env /opt/maperz/gustavo/
 cp package-lock.json /opt/maperz/gustavo/
 cp package.json /opt/maperz/gustavo/
-npm i
+npm i --prefix /opt/maperz/gustavo 
 
 # Copy service file to system services
 cp installation/gustavo.service /lib/systemd/system/
