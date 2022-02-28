@@ -1,0 +1,15 @@
+[Unit]
+Description=Gustavo - The emoji telegram cook
+After=network-online.target
+
+[Service]
+Restart=on-failure
+WorkingDirectory=/opt/maperz/gustavo/
+ExecStart=/usr/bin/node main.js
+CPUAccounting=true
+CPUQuota=10%
+MemoryAccounting=true
+MemoryLimit=50M
+
+[Install]
+WantedBy=multi-user.target

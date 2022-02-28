@@ -1,9 +1,10 @@
 {
   "name": "gustavo",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Gustavo - The emoji telegram cook",
+  "main": "main.js",
   "scripts": {
+    "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
